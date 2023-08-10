@@ -3,6 +3,7 @@ import os
 import json
 import unittest
 
+import boto3
 from dotenv import load_dotenv
 from moto import mock_s3
 import responses
@@ -80,16 +81,29 @@ class TestReadCsv(unittest.TestCase):
 
 class TestUploadFile(unittest.TestCase):
 
+    bucket_name = "test-bucket"
+    def setUp(self):
+        self.mock_s3 = mock_s3()
+        self.mock_s3.start()
+
+        s3_client = boto3.resource("s3")
+        bucket = s3_client.Bucket(self.bucket_name)
+        bucket.create()
+
+    def tearDown(self):
+        self.mock_s3.stop()
+
     def test_ok(self):
+        s3_client = boto3.client("s3")
+
         file_name = "test_1.jpg"
         file_url = f"test_images/{file_name}"
         field_data = {"field_id": "field_2"}
-        result = upload_file_to_s3(file_url, field_data)
+        
+        result = upload_file_to_s3(s3_client, file_url, field_data, bucket=self.bucket_name)
 
         assert "imagery.png" in result
     
-    # @mock_s3
-    # def test_error(self):
 
 
 
