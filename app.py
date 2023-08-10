@@ -1,3 +1,4 @@
+import csv
 import logging
 import os
 
@@ -25,6 +26,12 @@ def make_request(longitude, latitude, dimension):
     else:
         logging.error(f"Error retrieving image: {response.status_code}")
         return {"status": "There was an error retrieven the image"}
+
+def read_csv(file_location):
+    with open(file_location) as file:
+        csv_reader = csv.DictReader(file)
+        fields = [row for row in csv_reader]
+    return fields
 
 
 
