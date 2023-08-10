@@ -4,12 +4,14 @@ import json
 import unittest
 
 from dotenv import load_dotenv
+from moto import mock_s3
 import responses
 from responses import matchers
 
+
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(ROOT_DIR)
-from field_monitoring.app import make_request, read_csv
+from field_monitoring.app import make_request, read_csv, upload_file_to_s3
 
 API_KEY = os.getenv("API_KEY")
 BASE_URL = "https://api.nasa.gov/planetary/earth/imagery"
@@ -32,7 +34,7 @@ class TestMakeRequest(unittest.TestCase):
             responses.GET,
             url = BASE_URL,
             match = [matchers.query_param_matcher(params)],
-            body="test"
+            json= {"img_url": "https://mundogeo.com/wp-content/uploads/2022/02/23142632/pleiades-satellite-image-902x400.jpg"}
         )
 
         response = make_request(
@@ -42,6 +44,7 @@ class TestMakeRequest(unittest.TestCase):
         )
         
         assert response["status"] == "ok"
+        assert "image" in response.keys()
 
     @responses.activate
     def test_401(self):
@@ -74,3 +77,21 @@ class TestReadCsv(unittest.TestCase):
         assert fields[0]["lat"] == "100.71"
         assert fields[1]["lat"] == "100.72"
         assert fields[2]["lat"] == "100.73"
+
+class TestUploadFile(unittest.TestCase):
+
+    def test_ok(self):
+        file_name = "test_1.jpg"
+        file_url = f"test_images/{file_name}"
+        field_data = {"field_id": "field_2"}
+        result = upload_file_to_s3(file_url, field_data)
+
+        assert "imagery.png" in result
+    
+    # @mock_s3
+    # def test_error(self):
+
+
+
+    
+
