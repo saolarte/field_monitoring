@@ -1,4 +1,4 @@
-field_id,lat,lon,dim
+field_id,lon,lat,dim
 field_1,100.71,1.5,0.030
 field_2,100.72,1.5,0.030
 field_3,100.73,1.5,0.030

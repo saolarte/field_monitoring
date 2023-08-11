@@ -1,0 +1,1 @@
+- GET https://api.nasa.gov/planetary/earth/imagery?lon=100.73&lat=1.5&dim=0.030&api_key=VBIgXFPIilB3r4uOAXYh8hVRh65vdVL7NfzmKJY8
