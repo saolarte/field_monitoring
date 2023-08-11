@@ -135,6 +135,10 @@ class TestProcessImages(unittest.TestCase):
                 json= {"img_url": test["url"]}
             )
         process_images(s3_client, self.bucket_name)
+        obj_list = [file["Key"] for file in s3_client.list_objects(Bucket=self.bucket_name)['Contents']]
+        
+        assert len(obj_list) == 5
+
 
 
 
