@@ -2,6 +2,7 @@ import csv
 from datetime import date
 import logging
 import os
+from multiprocessing.pool import ThreadPool
 
 import boto3
 from dotenv import load_dotenv
@@ -13,9 +14,10 @@ load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
 BASE_URL = "https://api.nasa.gov/planetary/earth/imagery"
-BUCKET_NAME = "test-bucket-san9405"
+BUCKET_NAME = os.getenv("BUCKET_NAME")
 S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
 S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
+NUMBER_OF_PROCESSES = 10
 
 
 
@@ -57,6 +59,10 @@ def upload_file_to_s3(s3_client, file_object, field_data, bucket=BUCKET_NAME):
 def process_images(s3_client, bucket):
     fields = read_csv("test_fields.csv")
     for field in fields:
+        process_image(s3_client, bucket, field)
+
+
+def process_image(s3_client, bucket, field):
         response = make_request(field)
         if response["status"] == "ok":
             img = requests.get(
@@ -64,9 +70,14 @@ def process_images(s3_client, bucket):
                 stream=True
             )
             upload_response = upload_file_to_s3(s3_client, img.raw, field, bucket)
+            print(upload_response)
 
+def process_image_wrapper(args):
+    process_image(*args)
 
-
-            
-            
-
+def process(s3_client, bucket):
+    pool = ThreadPool(processes=NUMBER_OF_PROCESSES)
+    tasks_list = [(s3_client, bucket, field) for field in read_csv("test_fields.csv")]
+    pool.map(process_image_wrapper, tasks_list)
+    return True
+    
