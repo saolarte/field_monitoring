@@ -9,11 +9,13 @@ from moto import mock_s3
 import responses
 from responses import matchers
 
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(ROOT_DIR)
+from app import make_request, read_csv, upload_file_to_s3, process_images
+from test_cases import tests
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(ROOT_DIR)
-from field_monitoring.app import make_request, read_csv, upload_file_to_s3, process_images
-from test_cases import tests
 
 API_KEY = os.getenv("API_KEY")
 BASE_URL = "https://api.nasa.gov/planetary/earth/imagery"
@@ -93,7 +95,6 @@ class TestUploadFile(unittest.TestCase):
         file_name = "test_1.png"
         file_url = f"test_images/{file_name}"
         field_data = {"field_id": "field_2"}
-
         with open(file_url, "rb" ) as file:
             result = upload_file_to_s3(s3_client, file, field_data, bucket=self.bucket_name)
 
@@ -135,15 +136,12 @@ class TestProcessImages(unittest.TestCase):
                 json= {"img_url": test["url"]}
             )
         process_images(s3_client, self.bucket_name)
+
         obj_list = [file["Key"] for file in s3_client.list_objects(Bucket=self.bucket_name)['Contents']]
         
         assert len(obj_list) == 5
 
 
-
-
-
-
-
-
+if __name__ == '__main__':
+    unittest.main()
 

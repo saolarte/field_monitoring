@@ -5,11 +5,11 @@ import os
 from multiprocessing.pool import ThreadPool
 
 import boto3
-from dotenv import load_dotenv
+from dotenv import load_dotenv  
 import requests
 
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
@@ -52,9 +52,9 @@ def upload_file_to_s3(s3_client, file_object, field_data, bucket=BUCKET_NAME):
     except Exception as error:
         logging.error(f"Error uploading file to S3: {str(error)}")
         return False
+    logging.info(f"Image uploaded to: {file_destination}")
     return file_destination
     
-
 
 def process_images(s3_client, bucket):
     fields = read_csv("test_fields.csv")
@@ -70,14 +70,13 @@ def process_image(s3_client, bucket, field):
                 stream=True
             )
             upload_response = upload_file_to_s3(s3_client, img.raw, field, bucket)
-            print(upload_response)
 
 def process_image_wrapper(args):
     process_image(*args)
 
-def process(s3_client, bucket):
+def process(s3_client, bucket, csv_file_name):
     pool = ThreadPool(processes=NUMBER_OF_PROCESSES)
-    tasks_list = [(s3_client, bucket, field) for field in read_csv("test_fields.csv")]
+    tasks_list = [(s3_client, bucket, field) for field in read_csv(csv_file_name)]
     pool.map(process_image_wrapper, tasks_list)
     return True
     
